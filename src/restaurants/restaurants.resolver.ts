@@ -1,3 +1,4 @@
+import { SetMetadata } from '@nestjs/common';
 import {
   Args,
   Int,
@@ -9,18 +10,20 @@ import {
 } from '@nestjs/graphql';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
-import { CreateAccountOutput } from 'src/users/dtos/create-account.dto';
-import { User } from 'src/users/entities/user.entity';
+import { User, UserRole } from 'src/users/entities/user.entity';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
+import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
 import {
-  CreateRestaurantOutput,
   CreateRestaurantInput,
+  CreateRestaurantOutput,
 } from './dtos/create-restaurant.dto';
+import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
 import {
   DeleteRestaurantInput,
   DeleteRestaurantOutput,
 } from './dtos/delete-restaurant.dto';
+import { EditDishInput, EditDishOutput } from './dtos/edit-dish.dto';
 import {
   EditRestaurantInput,
   EditRestaurantOutput,
@@ -32,6 +35,7 @@ import {
   SearchRestaurantOutput,
 } from './dtos/search-restaurant.dto';
 import { Category } from './entities/category.entity';
+import { Dish } from './entities/dish.entity';
 import { Restaurant } from './entities/restaurant.entity';
 import { RestaurantService } from './restaurants.service';
 
@@ -44,7 +48,7 @@ export class RestaurantResolver {
   async createRestaurant(
     @AuthUser() authUser: User,
     @Args('input') createRestaurantInput: CreateRestaurantInput,
-  ): Promise<CreateAccountOutput> {
+  ): Promise<CreateRestaurantOutput> {
     return this.restaurantService.createRestaurant(
       authUser,
       createRestaurantInput,
@@ -79,18 +83,18 @@ export class RestaurantResolver {
     return this.restaurantService.allRestaurants(restaurantsInput);
   }
 
-  @Query((returns) => RestaurantOut)
+  @Query((returns) => RestaurantOutput)
   restaurant(
-    @Args('input') restaurantOutput: RestaurantOutput,
-  ): Promise<RestaurantOut> {
-    return;
+    @Args('input') restaurantInput: RestaurantInput,
+  ): Promise<RestaurantOutput> {
+    return this.restaurantService.findRestaurantById(restaurantInput);
   }
 
   @Query((returns) => SearchRestaurantOutput)
   searchRestaurant(
     @Args('input') searchRestaurantInput: SearchRestaurantInput,
   ): Promise<SearchRestaurantOutput> {
-    return;
+    return this.restaurantService.searchRestaurantByName(searchRestaurantInput);
   }
 }
 
@@ -104,7 +108,7 @@ export class CategoryResolver {
   }
 
   @Query((type) => AllCategoriesOutput)
-  allCaterories(): Promise<AllCategoriesOutput> {
+  allCategories(): Promise<AllCategoriesOutput> {
     return this.restaurantService.allCategories();
   }
 
@@ -113,5 +117,37 @@ export class CategoryResolver {
     @Args('input') categoryInput: CategoryInput,
   ): Promise<CategoryOutput> {
     return this.restaurantService.findCategoryBySlug(categoryInput);
+  }
+}
+
+@Resolver((of) => Dish)
+export class DishResolver {
+  constructor(private readonly restaurantService: RestaurantService) {}
+
+  @Mutation((type) => CreateDishOutput)
+  @Role(['Owner'])
+  createDish(
+    @AuthUser() owner: User,
+    @Args('input') createDishInput: CreateDishInput,
+  ): Promise<EditDishOutput> {
+    return this.restaurantService.createDish(owner, createDishInput);
+  }
+
+  @Mutation((type) => EditRestaurantOutput)
+  @Role(['Owner'])
+  editDish(
+    @AuthUser() owner: User,
+    @Args('input') editDishInput: EditDishInput,
+  ): Promise<EditDishOutput> {
+    return this.restaurantService.editDish(owner, editDishInput);
+  }
+
+  @Mutation((type) => DeleteDishOutput)
+  @Role(['Owner'])
+  deleteDish(
+    @AuthUser() owner: User,
+    @Args('input') deleteDishInput: DeleteDishInput,
+  ): Promise<DeleteDishOutput> {
+    return this.restaurantService.deleteDish(owner, deleteDishInput);
   }
 }

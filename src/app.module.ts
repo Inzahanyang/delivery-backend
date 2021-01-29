@@ -21,7 +21,7 @@ import { Category } from './restaurants/entities/category.entity';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { Dish } from './restaurants/entities/dish.entity';
 import { Order } from './orders/entities/order.entity';
-import { OrdersModule } from './orders/entities/orders.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
